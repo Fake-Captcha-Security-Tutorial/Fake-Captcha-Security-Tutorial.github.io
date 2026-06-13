@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sicherheits-Guide: Fake Captchas erkennen & blockieren</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --accent-danger: #e74c3c;
+            --accent-success: #2ecc71;
+            --primary: #3498db;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .comparison-box {
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .danger-box { border-color: var(--accent-danger); }
+        .success-box { border-color: var(--accent-success); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .badge.danger { background-color: var(--accent-danger); }
+        .badge.success { background-color: var(--accent-success); }
+
+        pre {
+            background: #2c3e50;
+            color: #f8f8f2;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .simulation-area {
+            background: #e8f4fd;
+            border: 2px dashed var(--primary);
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .interactive-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .interactive-btn:hover { background-color: #2980b9; }
+
+        .alert-info {
+            background-color: #d9edf7;
+            border-left: 5px solid #31708f;
+            color: #31708f;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Aufklärung: Was sind "Fake Captchas"?</h1>
+        <p>Ein interaktiver Anti-Scam-Kurs zum Schutz vor bösartigen Tastatur-Befehlen.</p>
+    </header>
+
+    <div class="container">
+
+        <div class="card">
+            <h2>Die Anatomie des Angriffs</h2>
+            <p>Seit einiger Zeit nutzen Kriminelle eine Methode, bei der gefälschte Captcha-Abfragen (z.B. "Verifizieren Sie, dass Sie ein Mensch sind") auf manipulierten Webseiten angezeigt werden. Statt Bilder anzuklicken, wird der Nutzer aufgefordert, eine Tastenkombination zu drücken.</p>
+            
+            <div class="alert-info">
+                <strong>Wie der Trick funktioniert:</strong>
+                <ol>
+                    <li>Die Seite behauptet, das Captcha sei fehlgeschlagen.</li>
+                    <li>Sie fordert dich auf, <code>Windows-Taste + R</code> zu drücken (öffnet das "Ausführen"-Fenster in Windows).</li>
+                    <li>Danach sollst du <code>STRG + V</code> drücken (fügt einen versteckten Befehl ein) und <code>Enter</code> drücken.</li>
+                </ol>
+            </div>
+            <p><strong>Das Risiko:</strong> Der in die Zwischenablage kopierte Befehl nutzt oft legitime Systemwerkzeuge wie <code>mshta.exe</code> or PowerShell, um im Hintergrund Schadsoftware (Malware) aus dem Internet nachzuladen und auszuführen. <strong>Echte Captchas verlangen niemals Systembefehle!</strong></p>
+        </div>
+
+        <div class="card">
+            <h2>Interaktives Training: Der harmlose Test</h2>
+            <p>Klicke auf den Button unten, um zu sehen, was solche Seiten im Hintergrund mit deiner Zwischenablage machen. <em>Hinweis: Dieser Test ist absolut harmlos und zeigt nur einen sicheren Text an!</em></p>
+            
+            <div class="simulation-area">
+                <button class="interactive-btn" onclick="simulateScam()">Simulation starten</button>
+                <p id="sim-text" style="margin-top: 1rem; font-weight: bold;"></p>
+                <div id="sim-instructions" style="display: none;">
+                    <p>Öffne jetzt testweise einen Editor (Notepad) und drücke <code>STRG + V</code>. Du wirst sehen, was die Seite unbemerkt hineinkopiert hat.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Direkter Vergleich: Echt vs. Falsch</h2>
+            <div class="grid">
+                <div class="comparison-box danger-box">
+                    <span class="badge danger">FALSCH (Gefährlich)</span>
+                    <h3>Gefälschtes Verifikations-Verfahren</h3>
+                    <ul>
+                        <li>Fordert Tastenkombinationen (<code>Win + R</code>, <code>STRG + Shift + I</code>).</li>
+                        <li>Verlangt das Einfügen von Text in die Kommandozeile.</li>
+                        <li>Nutzt dringliche Sprache ("Aktion erforderlich!").</li>
+                        <li>Behauptet, dein Browser sei veraltet oder blockiert.</li>
+                    </ul>
+                </div>
+                <div class="comparison-box success-box">
+                    <span class="badge success">ECHT (Sicher)</span>
+                    <h3>Echtes Captcha (Cloudflare / Google)</h3>
+                    <ul>
+                        <li>Erfordert nur einen Mausklick ("Ich bin ein Mensch").</li>
+                        <li>Löst Bilderrätsel direkt im Browserfenster.</li>
+                        <li>Interagiert <strong>niemals</strong> mit dem Betriebssystem außerhalb des Browsers.</li>
+                        <li>Benötigt keine Admin-Rechte oder Tastatur-Befehle.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Wie meldet (reported) man solche Betrugsseiten?</h2>
+            <p>Wenn du auf eine solche Seite stößt, kannst du helfen, das Internet sicherer zu machen, indem du sie bei den großen Infrastruktur-Anbietern meldest:</p>
+            
+            <h3>1. Cloudflare Abuse Report</h3>
+            <p>Viele dieser Seiten nutzen Cloudflare, um ihre echte IP-Adresse zu verstecken. Du kannst sie hier melden:</p>
+            <p><a href="https://abuse.cloudflare.com/" target="_blank">Cloudflare Abuse Reporting Tool (https://abuse.cloudflare.com/)</a><br>
+            Wähle dort die Kategorie "Malware/Phishing" aus und füge die URL der betroffenen Seite ein.</p>
+
+            <h3>2. Google Safe Browsing</h3>
+            <p>Damit Chrome und andere Browser die Seite für alle Nutzer blockieren, melde sie direkt an Google:</p>
+            <p><a href="https://safebrowsing.google.com/safebrowsing/report_phish/" target="_blank">Google Report Phishing Page</a></p>
+        </div>
+
+    </div>
+
+    <script>
+        function simulateScam() {
+            // Ein völlig harmloser Text, der erklärt, was passiert ist.
+            const safeText = "ECHO HIER STÜNDE IM ERNSTFALL EIN BÖSARTIGER BEFEHL! Niemals Befehle ungeprüft ausführen.";
+            
+            navigator.clipboard.writeText(safeText).then(() => {
+                document.getElementById('sim-text').innerText = "Kopieren simuliert! In deiner Zwischenablage befindet sich nun ein harmloser Aufklärungstext.";
+                document.getElementById('sim-text').style.color = "var(--accent-danger)";
+                document.getElementById('sim-instructions').style.display = "block";
+            }).catch(err => {
+                document.getElementById('sim-text').innerText = "Fehler: Zugriff auf Zwischenablage verweigert. Das ist gut so! Dein Browser schützt dich.";
+            });
+        }
+    </script>
+
+</body>
+</html>
