@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sicherheits-Guide: Fake Captchas erkennen & blockieren</title>
+    <title>Anti-Scam Simulator & Guide</title>
     <style>
         :root {
-            --bg-color: #f4f7f6;
-            --text-color: #333;
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
             --card-bg: #ffffff;
-            --accent-danger: #e74c3c;
-            --accent-success: #2ecc71;
-            --primary: #3498db;
+            --accent-danger: #ef4444;
+            --accent-success: #22c55e;
+            --primary: #3b82f6;
+            --border-color: #e2e8f0;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -24,10 +25,28 @@
         }
 
         header {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
+            background: linear-gradient(135deg, #1e293b, #0f172a);
             color: white;
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 3rem 1rem;
+        }
+
+        .lang-selector {
+            margin-top: 1rem;
+        }
+
+        .lang-selector button {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .lang-selector button.active {
+            background: var(--primary);
         }
 
         .container {
@@ -38,15 +57,17 @@
 
         .card {
             background: var(--card-bg);
-            border-radius: 8px;
-            padding: 1.5rem;
+            border-radius: 12px;
+            padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
         }
 
         h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #ecf0f1;
+            margin-top: 0;
+            color: #1e293b;
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 0.5rem;
         }
 
@@ -60,157 +81,229 @@
             .grid { grid-template-columns: 1fr; }
         }
 
+        /* Simulator Styles */
+        .captcha-simulator {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .fake-captcha-box {
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 1.5rem;
+            border-radius: 6px;
+            display: inline-block;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+
+        .shortcut-badge {
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-bottom-width: 3px;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .terminal-output {
+            background: #1e293b;
+            color: #38bdf8;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            text-align: left;
+            display: none;
+        }
+
         .comparison-box {
             border: 2px solid #ccc;
-            border-radius: 6px;
-            padding: 1rem;
+            border-radius: 8px;
+            padding: 1.5rem;
         }
 
-        .danger-box { border-color: var(--accent-danger); }
-        .success-box { border-color: var(--accent-success); }
+        .danger-box { border-color: var(--accent-danger); background: #fef2f2; }
+        .success-box { border-color: var(--accent-success); background: #f0fdf4; }
 
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 1rem;
-        }
-
-        .badge.danger { background-color: var(--accent-danger); }
-        .badge.success { background-color: var(--accent-success); }
-
-        pre {
-            background: #2c3e50;
-            color: #f8f8f2;
-            padding: 1rem;
-            border-radius: 4px;
-            overflow-x: auto;
-        }
-
-        .simulation-area {
-            background: #e8f4fd;
-            border: 2px dashed var(--primary);
-            padding: 1rem;
-            border-radius: 6px;
+        .infographic-container {
             text-align: center;
+            margin: 1.5rem 0;
         }
 
-        .interactive-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .interactive-btn:hover { background-color: #2980b9; }
-
-        .alert-info {
-            background-color: #d9edf7;
-            border-left: 5px solid #31708f;
-            color: #31708f;
-            padding: 1rem;
-            margin: 1rem 0;
+        .infographic-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Aufklärung: Was sind "Fake Captchas"?</h1>
-        <p>Ein interaktiver Anti-Scam-Kurs zum Schutz vor bösartigen Tastatur-Befehlen.</p>
+        <h1 id="main-title">Aufklärung: Fake Captchas</h1>
+        <p id="main-sub">Erfahre, wie Kriminelle dein Betriebssystem austricksen wollen.</p>
+        
+        <div class="lang-selector">
+            <button onclick="setLanguage('de')" class="active">Deutsch</button>
+            <button onclick="setLanguage('en')">English</button>
+            <button onclick="setLanguage('es')">Español</button>
+        </div>
     </header>
 
     <div class="container">
 
         <div class="card">
-            <h2>Die Anatomie des Angriffs</h2>
-            <p>Seit einiger Zeit nutzen Kriminelle eine Methode, bei der gefälschte Captcha-Abfragen (z.B. "Verifizieren Sie, dass Sie ein Mensch sind") auf manipulierten Webseiten angezeigt werden. Statt Bilder anzuklicken, wird der Nutzer aufgefordert, eine Tastenkombination zu drücken.</p>
+            <h2 id="sec-sim-title">Interaktiver Live-Simulator (Sicher)</h2>
+            <p id="sec-sim-desc">Hier siehst du, wie eine Betrugsseite versucht, dich zu manipulieren. Klicke auf den Button, um den Ablauf zu starten:</p>
             
-            <div class="alert-info">
-                <strong>Wie der Trick funktioniert:</strong>
-                <ol>
-                    <li>Die Seite behauptet, das Captcha sei fehlgeschlagen.</li>
-                    <li>Sie fordert dich auf, <code>Windows-Taste + R</code> zu drücken (öffnet das "Ausführen"-Fenster in Windows).</li>
-                    <li>Danach sollst du <code>STRG + V</code> drücken (fügt einen versteckten Befehl ein) und <code>Enter</code> drücken.</li>
-                </ol>
-            </div>
-            <p><strong>Das Risiko:</strong> Der in die Zwischenablage kopierte Befehl nutzt oft legitime Systemwerkzeuge wie <code>mshta.exe</code> or PowerShell, um im Hintergrund Schadsoftware (Malware) aus dem Internet nachzuladen und auszuführen. <strong>Echte Captchas verlangen niemals Systembefehle!</strong></p>
-        </div>
+            <div class="captcha-simulator">
+                <div class="fake-captcha-box" id="captcha-box">
+                    <p style="font-weight: bold;" id="fake-prompt">Verifikation erforderlich. Bitte beweise, dass du ein Mensch bist.</p>
+                    <button onclick="triggerSimulation()" style="background: #2563eb; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; font-weight: bold;" id="fake-btn">Ich bin kein Roboter</button>
+                </div>
 
-        <div class="card">
-            <h2>Interaktives Training: Der harmlose Test</h2>
-            <p>Klicke auf den Button unten, um zu sehen, was solche Seiten im Hintergrund mit deiner Zwischenablage machen. <em>Hinweis: Dieser Test ist absolut harmlos und zeigt nur einen sicheren Text an!</em></p>
-            
-            <div class="simulation-area">
-                <button class="interactive-btn" onclick="simulateScam()">Simulation starten</button>
-                <p id="sim-text" style="margin-top: 1rem; font-weight: bold;"></p>
-                <div id="sim-instructions" style="display: none;">
-                    <p>Öffne jetzt testweise einen Editor (Notepad) und drücke <code>STRG + V</code>. Du wirst sehen, was die Seite unbemerkt hineinkopiert hat.</p>
+                <div id="step-instructions" style="display:none; margin-top: 1.5rem; text-align: left; background: white; padding: 1rem; border-radius: 6px; border-left: 4px solid var(--accent-danger);">
+                    <p id="ins-step1">⚠️ <strong>Schritt 1:</strong> Der Betrüger behauptet, die Verifikation sei fehlgeschlagen und verlangt <span class="shortcut-badge">Win + R</span>.</p>
+                    <p id="ins-step2">⚠️ <strong>Schritt 2:</strong> Danach wirst du aufgefordert, <span class="shortcut-badge">STRG + V</span> und <span class="shortcut-badge">Enter</span> zu drücken.</p>
+                    <p id="ins-step3" style="color: var(--accent-success); font-weight: bold;"></p>
+                </div>
+
+                <div class="terminal-output" id="terminal">
+                    C:\Windows\system32&gt; <span id="terminal-command" style="color: white;"></span>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <h2>Direkter Vergleich: Echt vs. Falsch</h2>
+            <h2 id="sec-comp-title">Echt vs. Gefälscht im Überblick</h2>
+            
+            <div class="infographic-container">
+                http://googleusercontent.com/image_generation_content/0
+            </div>
+
             <div class="grid">
                 <div class="comparison-box danger-box">
-                    <span class="badge danger">FALSCH (Gefährlich)</span>
-                    <h3>Gefälschtes Verifikations-Verfahren</h3>
-                    <ul>
-                        <li>Fordert Tastenkombinationen (<code>Win + R</code>, <code>STRG + Shift + I</code>).</li>
-                        <li>Verlangt das Einfügen von Text in die Kommandozeile.</li>
-                        <li>Nutzt dringliche Sprache ("Aktion erforderlich!").</li>
-                        <li>Behauptet, dein Browser sei veraltet oder blockiert.</li>
+                    <h3 style="color: var(--accent-danger);" id="comp-fake-title">❌ Gefälschtes Captcha</h3>
+                    <ul id="comp-fake-list">
+                        <li>Interagiert mit der Tastatur (Win+R)</li>
+                        <li>Verlangt das Ausführen von Befehlen</li>
+                        <li>Kopiert unsichtbaren Text</li>
                     </ul>
                 </div>
                 <div class="comparison-box success-box">
-                    <span class="badge success">ECHT (Sicher)</span>
-                    <h3>Echtes Captcha (Cloudflare / Google)</h3>
-                    <ul>
-                        <li>Erfordert nur einen Mausklick ("Ich bin ein Mensch").</li>
-                        <li>Löst Bilderrätsel direkt im Browserfenster.</li>
-                        <li>Interagiert <strong>niemals</strong> mit dem Betriebssystem außerhalb des Browsers.</li>
-                        <li>Benötigt keine Admin-Rechte oder Tastatur-Befehle.</li>
+                    <h3 style="color: var(--accent-success);" id="comp-real-title">✅ Echtes Captcha</h3>
+                    <ul id="comp-real-list">
+                        <li>Findet NUR im Browser statt</li>
+                        <li>Bilder anklicken oder Haken setzen</li>
+                        <li>Fragt niemals nach Systemrechten</li>
                     </ul>
                 </div>
             </div>
-        </div>
-
-        <div class="card">
-            <h2>Wie meldet (reported) man solche Betrugsseiten?</h2>
-            <p>Wenn du auf eine solche Seite stößt, kannst du helfen, das Internet sicherer zu machen, indem du sie bei den großen Infrastruktur-Anbietern meldest:</p>
-            
-            <h3>1. Cloudflare Abuse Report</h3>
-            <p>Viele dieser Seiten nutzen Cloudflare, um ihre echte IP-Adresse zu verstecken. Du kannst sie hier melden:</p>
-            <p><a href="https://abuse.cloudflare.com/" target="_blank">Cloudflare Abuse Reporting Tool (https://abuse.cloudflare.com/)</a><br>
-            Wähle dort die Kategorie "Malware/Phishing" aus und füge die URL der betroffenen Seite ein.</p>
-
-            <h3>2. Google Safe Browsing</h3>
-            <p>Damit Chrome und andere Browser die Seite für alle Nutzer blockieren, melde sie direkt an Google:</p>
-            <p><a href="https://safebrowsing.google.com/safebrowsing/report_phish/" target="_blank">Google Report Phishing Page</a></p>
         </div>
 
     </div>
 
     <script>
-        function simulateScam() {
-            // Ein völlig harmloser Text, der erklärt, was passiert ist.
-            const safeText = "ECHO HIER STÜNDE IM ERNSTFALL EIN BÖSARTIGER BEFEHL! Niemals Befehle ungeprüft ausführen.";
+        // Sprachdatenbank (Lässt sich leicht auf 100+ Sprachen erweitern)
+        const translations = {
+            de: {
+                title: "Aufklärung: Fake Captchas",
+                sub: "Erfahre, wie Kriminelle dein Betriebssystem austricksen wollen.",
+                simTitle: "Interaktiver Live-Simulator (Sicher)",
+                simDesc: "Hier siehst du, wie eine Betrugsseite versucht, dich zu manipulieren. Klicke auf den Button, um den Ablauf zu starten:",
+                fakePrompt: "Verifikation erforderlich. Bitte beweise, dass du ein Mensch bist.",
+                fakeBtn: "Ich bin kein Roboter",
+                step1: "⚠️ <strong>Schritt 1:</strong> Die Fake-Seite täuscht einen Fehler vor und fordert dich auf, <span class='shortcut-badge'>Win + R</span> zu drücken.",
+                step2: "⚠️ <strong>Schritt 2:</strong> Sie animiert dich dazu, <span class='shortcut-badge'>STRG + V</span> (Einfügen) und <span class='shortcut-badge'>Enter</span> zu drücken.",
+                step3: "🎉 <strong>Sicherheits-Check:</strong> Wir haben stattdessen einen völlig harmlosen Text in deine Zwischenablage gelegt! Öffne Notepad und drücke STRG+V, um ihn zu lesen.",
+                compTitle: "Echt vs. Gefälscht im Überblick",
+                compFakeTitle: "❌ Gefälschtes Captcha",
+                compRealTitle: "✅ Echtes Captcha",
+                fakeList: "<li>Verlangt Tastatur-Befehle (Win+R, STRG+V)</li><li>Nutzt externe Programme wie mshta oder PowerShell</li><li>Kommt oft von illegalen Streaming- oder Downloadseiten</li>",
+                realList: "<li>Läuft komplett isoliert im Browser ab</li><li>Erfordert Klicks auf Bilder (z.B. Busse, Ampeln)</li><li>Hat niemals Zugriff auf dein Windows-System</li>"
+            },
+            en: {
+                title: "Education: Fake Captchas",
+                sub: "Learn how cybercriminals try to trick your operating system.",
+                simTitle: "Interactive Live Simulator (Safe)",
+                simDesc: "See how a scam website attempts to manipulate you. Click the button to start the simulation:",
+                fakePrompt: "Verification required. Please prove you are human.",
+                fakeBtn: "I am not a robot",
+                step1: "⚠️ <strong>Step 1:</strong> The fake site fakes an error and asks you to press <span class='shortcut-badge'>Win + R</span>.",
+                step2: "⚠️ <strong>Step 2:</strong> It prompts you to press <span class='shortcut-badge'>CTRL + V</span> (Paste) and <span class='shortcut-badge'>Enter</span>.",
+                step3: "🎉 <strong>Safety Check:</strong> We copied a completely harmless educational text to your clipboard instead! Open Notepad and press CTRL+V to see it.",
+                compTitle: "Real vs. Fake Comparison",
+                compFakeTitle: "❌ Fake Captcha",
+                compRealTitle: "✅ Real Captcha",
+                fakeList: "<li>Demands keyboard shortcuts (Win+R, CTRL+V)</li><li>Uses external system tools like mshta or PowerShell</li><li>Usually found on shady streaming or torrent sites</li>",
+                realList: "<li>Runs entirely contained inside your browser</li><li>Requires clicking images (e.g., traffic lights)</li><li>Never interacts with your Windows operating system</li>"
+            },
+            es: {
+                title: "Educación: Captchas Falsos",
+                sub: "Aprende cómo los cibercriminales intentan engañar a tu sistema operativo.",
+                simTitle: "Simulador Interactivo (Seguro)",
+                simDesc: "Mira cómo un sitio web estafa intenta manipularte. Haz clic en el botón para iniciar:",
+                fakePrompt: "Verificación requerida. Por favor, demuestra que eres humano.",
+                fakeBtn: "No soy un robot",
+                step1: "⚠️ <strong>Paso 1:</strong> El sitio falso simula un error y te pide presionar <span class='shortcut-badge'>Win + R</span>.",
+                step2: "⚠️ <strong>Paso 2:</strong> Te pide presionar <span class='shortcut-badge'>CTRL + V</span> (Pegar) y <span class='shortcut-badge'>Enter</span>.",
+                step3: "🎉 <strong>Control de seguridad:</strong> ¡Hemos copiado un texto educativo totalmente inofensivo en tu portapapeles! Abre el Bloc de notas y presiona CTRL+V.",
+                compTitle: "Comparación: Real vs Falso",
+                compFakeTitle: "❌ Captcha Falso",
+                compRealTitle: "✅ Captcha Real",
+                fakeList: "<li>Exige atajos de teclado (Win+R, CTRL+V)</li><li>Utiliza herramientas del sistema como mshta o PowerShell</li><li>Aparece en sitios de streaming o descargas ilegales</li>",
+                realList: "<li>Se ejecuta completamente dentro del navegador</li><li>Requiere hacer clic en imágenes (semáforos, autobuses)</li><li>Nunca interactúa con tu sistema Windows</li>"
+            }
+        };
+
+        function setLanguage(lang) {
+            // Buttons aktualisieren
+            document.querySelectorAll('.lang-selector button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Texte austauschen
+            document.getElementById('main-title').innerText = translations[lang].title;
+            document.getElementById('main-sub').innerText = translations[lang].sub;
+            document.getElementById('sec-sim-title').innerText = translations[lang].simTitle;
+            document.getElementById('sec-sim-desc').innerText = translations[lang].simDesc;
+            document.getElementById('fake-prompt').innerText = translations[lang].fakePrompt;
+            document.getElementById('fake-btn').innerText = translations[lang].fakeBtn;
+            document.getElementById('ins-step1').innerHTML = translations[lang].step1;
+            document.getElementById('ins-step2').innerHTML = translations[lang].step2;
             
-            navigator.clipboard.writeText(safeText).then(() => {
-                document.getElementById('sim-text').innerText = "Kopieren simuliert! In deiner Zwischenablage befindet sich nun ein harmloser Aufklärungstext.";
-                document.getElementById('sim-text').style.color = "var(--accent-danger)";
-                document.getElementById('sim-instructions').style.display = "block";
-            }).catch(err => {
-                document.getElementById('sim-text').innerText = "Fehler: Zugriff auf Zwischenablage verweigert. Das ist gut so! Dein Browser schützt dich.";
+            // Falls die Simulation schon lief, auch Schritt 3 übersetzen
+            if(document.getElementById('ins-step3').innerText !== "") {
+                document.getElementById('ins-step3').innerHTML = translations[lang].step3;
+            }
+            
+            document.getElementById('sec-comp-title').innerText = translations[lang].compTitle;
+            document.getElementById('comp-fake-title').innerText = translations[lang].compFakeTitle;
+            document.getElementById('comp-real-title').innerText = translations[lang].compRealTitle;
+            document.getElementById('comp-fake-list').innerHTML = translations[lang].fakeList;
+            document.getElementById('comp-real-list').innerHTML = translations[lang].realList;
+        }
+
+        function triggerSimulation() {
+            const currentLang = document.querySelector('.lang-selector button.active').innerText.toLowerCase() === 'deutsch' ? 'de' : (document.querySelector('.lang-selector button.active').innerText.toLowerCase() === 'english' ? 'en' : 'es');
+            
+            // Ein völlig sicherer Code-Text für die Zwischenablage
+            const safePayload = "cmd.exe /c echo HIER STÜNDE NORMALERWEISE DER SCHADCODE! Schließe dieses Fenster einfach wieder.";
+            
+            navigator.clipboard.writeText(safePayload).then(() => {
+                document.getElementById('step-instructions').style.display = 'block';
+                document.getElementById('ins-step3').innerHTML = translations[currentLang].step3;
+                
+                // Terminal-Simulation anzeigen
+                document.getElementById('terminal').style.display = 'block';
+                document.getElementById('terminal-command').innerText = safePayload;
             });
         }
     </script>
-
 </body>
 </html>
